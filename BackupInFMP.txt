@@ -1,0 +1,80 @@
+--note : the specific file needs to be referenced in the terminal (both source and destination), in BaseName, so Finder actions add the appropriate name, and in the 
+--part 1 : terminal
+-- thus far, get specified file, use terminal to compress to desktop, Finder then renames duplicate and zip created and moves both to specified folder 1
+tell application "Terminal" to do shell script "ditto -ck --sequesterRsrc --keepParent /Users/username/Dropbox/work/Databases/datadaseName /Users/username/Desktop/datadaseName.zip"
+tell application "Terminal" to quit
+--shell script to zip (ditto -c) (using -z compression) a specified file with Terminal to specific location (ditto -c -z source destination
+--part 2 : defining the variables to form the unique name
+set timeStr to time string of (current date)
+set Pos to offset of ":" in timeStr
+set theHour to characters 1 thru (Pos - 1) of timeStr as string
+set theMin to characters (Pos + 1) through (Pos + 2) of timeStr as string
+set theSec to characters (Pos + 4) through end of timeStr as string
+set theTime to theHour & "-" & theMin & "-" & theSec
+set theYMD to short date string of (get current date)
+set finalYMD to "20" & theYMD
+set DateString to finalYMD & "-" & theTime
+--the above lines get the date into a YYYY-MM-DD-HH-MM-SS format
+set FileExtension to ".fmp12"
+-- use .fmp12 as file extension
+set ZipExtension to ".zip"
+-- use .zip as file extension
+set BaseName to "-myDatabase"
+-- this sets the name of the file exported, should be same as file specified to Terminal (above) and to Finder (below)
+set FileString to DateString & BaseName & FileExtension
+set ZipString to DateString & BaseName & ZipExtension
+--concatenates the variables into single strings
+
+--part 3 : duplicating and moving to appropriate destinations
+tell application "Finder"
+	set ZipnewName to ZipString
+	set SourceZip to ZipnewName
+	set name of file "myDatabases.zip" of folder "Desktop" of home to SourceZip
+	--renames the zip created with Terminal to the appropriate string
+	set GoogleFolder to folder "myDatabase" of folder "Databases" of folder "GoogleDrive" of home
+	duplicate file ZipnewName to GoogleFolder
+	
+	if (exists of folder "myDatabase" of folder "Databases" of disk "disk2") is true then
+		set targetFolder to folder "primaryDatabase" of folder "Databases" of disk "disk2"
+		duplicate file ZipnewName to targetFolder
+	else
+		set NewfolderName to "Move me to disk2"
+		if (exists of folder "Move me to disk2" of folder "Desktop" of home) is true then
+			set targetFolder to folder "Move me to Hod" of folder "Desktop" of home
+			duplicate file ZipnewName to targetFolder
+		else
+			set thePath to path to desktop
+			make new folder at thePath with properties {name:NewfolderName}
+			set targetFolder to folder NewfolderName of folder "Desktop" of home
+			duplicate file ZipnewName to targetFolder
+			-- this if statements looks for a particular folder, and if it's present, copies specified files there ; if it's not present (or not connected), a folder of specified name will be created
+		end if
+	end if
+	
+	if (exists of folder "databaseName" of folder "Databases" of disk "disk3") is true then
+		set targetFolder to folder "databaseName" of folder "Databases" of disk "disk3"
+		duplicate file ZipnewName to targetFolder
+	else
+		set NewfolderName to "Move me to disk3"
+		if (exists of folder "Move me to disk3" of folder "Desktop" of home) is true then
+			set targetFolder to folder "Move me to disk3" of folder "Desktop" of home
+			duplicate file ZipnewName to targetFolder
+		else
+			set thePath to path to desktop
+			make new folder at thePath with properties {name:NewfolderName}
+			set targetFolder to folder NewfolderName of folder "Desktop" of home
+			duplicate file ZipnewName to targetFolder
+			-- this if statements looks for a particular folder, and if it's present, copies specified files there ; if it's not present (or not connected), a folder of specified name will be created
+		end if
+	end if
+	
+	
+	
+	
+	
+end tell
+tell application "Finder"
+	if (exists of file ZipnewName of folder "Desktop" of home) is true then move file ZipnewName of folder "Desktop" of home to trash
+end tell
+end
+say "databaseName backup complete"
